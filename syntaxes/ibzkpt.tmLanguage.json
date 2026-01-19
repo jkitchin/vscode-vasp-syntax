@@ -1,0 +1,46 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "IBZKPT",
+  "scopeName": "source.ibzkpt",
+  "comment": "VASP IBZKPT irreducible k-points file",
+  "patterns": [
+    { "include": "#comment-line" },
+    { "include": "#header-line" },
+    { "include": "#mode-line" },
+    { "include": "#numbers" }
+  ],
+  "repository": {
+    "comment-line": {
+      "patterns": [
+        {
+          "name": "comment.line.ibzkpt",
+          "match": "^\\s*[#!].*$"
+        }
+      ]
+    },
+    "header-line": {
+      "patterns": [
+        {
+          "name": "markup.heading.header.ibzkpt",
+          "match": "(?i)^\\s*Automatically\\s+generated\\s+mesh.*$"
+        }
+      ]
+    },
+    "mode-line": {
+      "patterns": [
+        {
+          "name": "keyword.control.mode.ibzkpt",
+          "match": "(?i)^\\s*(Reciprocal|Cartesian|Direct)\\s*$"
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.float.ibzkpt",
+          "match": "[-+]?\\d*\\.?\\d+([eEdD][-+]?\\d+)?"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "PCDAT",
+  "scopeName": "source.pcdat",
+  "comment": "VASP PCDAT pair correlation data file",
+  "patterns": [
+    { "include": "#comment-line" },
+    { "include": "#header-info" },
+    { "include": "#pair-header" },
+    { "include": "#numbers" }
+  ],
+  "repository": {
+    "comment-line": {
+      "patterns": [
+        {
+          "name": "comment.line.pcdat",
+          "match": "^\\s*[#!].*$"
+        }
+      ]
+    },
+    "header-info": {
+      "patterns": [
+        {
+          "name": "keyword.control.header.pcdat",
+          "match": "(?i)\\b(NPACO|APACO|NIONS|pair\\s+correlation)\\b"
+        }
+      ]
+    },
+    "pair-header": {
+      "patterns": [
+        {
+          "name": "markup.heading.pair.pcdat",
+          "match": "(?i)^\\s*pair\\s+correlation.*$"
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.float.pcdat",
+          "match": "[-+]?\\d*\\.?\\d+([eEdD][-+]?\\d+)?"
+        }
+      ]
+    }
+  }
+}

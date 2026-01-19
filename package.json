@@ -1,7 +1,7 @@
 {
   "name": "vasp-syntax",
   "displayName": "VASP Syntax Highlighting",
-  "description": "Syntax highlighting and tooltips for VASP input/output files (INCAR, POSCAR, CONTCAR, KPOINTS, OUTCAR)",
+  "description": "Syntax highlighting and tooltips for all VASP input/output files including INCAR, POSCAR, CONTCAR, CHGCAR, DOSCAR, XDATCAR, LOCPOT, ELFCAR, PARCHG, PROCAR, OSZICAR, EIGENVAL, IBZKPT, KPOINTS, OUTCAR and more",
   "version": "1.0.0",
   "license": "MIT",
   "publisher": "vasp-ase",
@@ -21,16 +21,35 @@
     "incar",
     "poscar",
     "contcar",
+    "chgcar",
+    "doscar",
+    "xdatcar",
+    "locpot",
+    "elfcar",
+    "parchg",
+    "procar",
+    "oszicar",
+    "eigenval",
+    "outcar",
     "kpoints",
     "computational chemistry",
     "materials science",
-    "dft"
+    "dft",
+    "ab initio"
   ],
   "activationEvents": [
     "onLanguage:incar",
     "onLanguage:poscar",
     "onLanguage:kpoints",
-    "onLanguage:outcar"
+    "onLanguage:outcar",
+    "onLanguage:chgcar",
+    "onLanguage:doscar",
+    "onLanguage:xdatcar",
+    "onLanguage:oszicar",
+    "onLanguage:eigenval",
+    "onLanguage:procar",
+    "onLanguage:ibzkpt",
+    "onLanguage:pcdat"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -100,6 +119,137 @@
           ".outcar"
         ],
         "configuration": "./language-configuration.json"
+      },
+      {
+        "id": "chgcar",
+        "aliases": [
+          "CHGCAR",
+          "chgcar",
+          "LOCPOT",
+          "locpot",
+          "ELFCAR",
+          "elfcar",
+          "PARCHG",
+          "parchg",
+          "CHG",
+          "AECCAR0",
+          "AECCAR2"
+        ],
+        "filenames": [
+          "CHGCAR",
+          "CHG",
+          "LOCPOT",
+          "ELFCAR",
+          "PARCHG",
+          "AECCAR0",
+          "AECCAR1",
+          "AECCAR2"
+        ],
+        "extensions": [
+          ".chgcar",
+          ".locpot",
+          ".elfcar",
+          ".parchg"
+        ],
+        "configuration": "./language-configuration.json"
+      },
+      {
+        "id": "doscar",
+        "aliases": [
+          "DOSCAR",
+          "doscar"
+        ],
+        "filenames": [
+          "DOSCAR"
+        ],
+        "extensions": [
+          ".doscar"
+        ],
+        "configuration": "./language-configuration.json"
+      },
+      {
+        "id": "xdatcar",
+        "aliases": [
+          "XDATCAR",
+          "xdatcar"
+        ],
+        "filenames": [
+          "XDATCAR"
+        ],
+        "extensions": [
+          ".xdatcar"
+        ],
+        "configuration": "./language-configuration.json"
+      },
+      {
+        "id": "oszicar",
+        "aliases": [
+          "OSZICAR",
+          "oszicar"
+        ],
+        "filenames": [
+          "OSZICAR"
+        ],
+        "extensions": [
+          ".oszicar"
+        ],
+        "configuration": "./language-configuration.json"
+      },
+      {
+        "id": "eigenval",
+        "aliases": [
+          "EIGENVAL",
+          "eigenval"
+        ],
+        "filenames": [
+          "EIGENVAL"
+        ],
+        "extensions": [
+          ".eigenval"
+        ],
+        "configuration": "./language-configuration.json"
+      },
+      {
+        "id": "procar",
+        "aliases": [
+          "PROCAR",
+          "procar"
+        ],
+        "filenames": [
+          "PROCAR"
+        ],
+        "extensions": [
+          ".procar"
+        ],
+        "configuration": "./language-configuration.json"
+      },
+      {
+        "id": "ibzkpt",
+        "aliases": [
+          "IBZKPT",
+          "ibzkpt"
+        ],
+        "filenames": [
+          "IBZKPT"
+        ],
+        "extensions": [
+          ".ibzkpt"
+        ],
+        "configuration": "./language-configuration.json"
+      },
+      {
+        "id": "pcdat",
+        "aliases": [
+          "PCDAT",
+          "pcdat"
+        ],
+        "filenames": [
+          "PCDAT"
+        ],
+        "extensions": [
+          ".pcdat"
+        ],
+        "configuration": "./language-configuration.json"
       }
     ],
     "commands": [
@@ -132,6 +282,46 @@
         "language": "outcar",
         "scopeName": "source.outcar",
         "path": "./syntaxes/outcar.tmLanguage.json"
+      },
+      {
+        "language": "chgcar",
+        "scopeName": "source.chgcar",
+        "path": "./syntaxes/chgcar.tmLanguage.json"
+      },
+      {
+        "language": "doscar",
+        "scopeName": "source.doscar",
+        "path": "./syntaxes/doscar.tmLanguage.json"
+      },
+      {
+        "language": "xdatcar",
+        "scopeName": "source.xdatcar",
+        "path": "./syntaxes/xdatcar.tmLanguage.json"
+      },
+      {
+        "language": "oszicar",
+        "scopeName": "source.oszicar",
+        "path": "./syntaxes/oszicar.tmLanguage.json"
+      },
+      {
+        "language": "eigenval",
+        "scopeName": "source.eigenval",
+        "path": "./syntaxes/eigenval.tmLanguage.json"
+      },
+      {
+        "language": "procar",
+        "scopeName": "source.procar",
+        "path": "./syntaxes/procar.tmLanguage.json"
+      },
+      {
+        "language": "ibzkpt",
+        "scopeName": "source.ibzkpt",
+        "path": "./syntaxes/ibzkpt.tmLanguage.json"
+      },
+      {
+        "language": "pcdat",
+        "scopeName": "source.pcdat",
+        "path": "./syntaxes/pcdat.tmLanguage.json"
       }
     ],
     "configurationDefaults": {

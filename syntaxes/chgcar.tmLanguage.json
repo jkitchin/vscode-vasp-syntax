@@ -1,0 +1,83 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "CHGCAR",
+  "scopeName": "source.chgcar",
+  "comment": "VASP CHGCAR/LOCPOT/ELFCAR/PARCHG volumetric data files",
+  "patterns": [
+    { "include": "#comment-line" },
+    { "include": "#header-keyword" },
+    { "include": "#element-symbols" },
+    { "include": "#coordinate-type" },
+    { "include": "#selective-dynamics" },
+    { "include": "#augmentation-header" },
+    { "include": "#grid-line" },
+    { "include": "#numbers" }
+  ],
+  "repository": {
+    "comment-line": {
+      "patterns": [
+        {
+          "name": "comment.line.chgcar",
+          "match": "^\\s*[#!].*$"
+        }
+      ]
+    },
+    "header-keyword": {
+      "patterns": [
+        {
+          "name": "keyword.control.header.chgcar",
+          "match": "(?i)\\b(augmentation|occupancies|spin\\s+component)\\b"
+        }
+      ]
+    },
+    "element-symbols": {
+      "patterns": [
+        {
+          "name": "entity.name.type.element.chgcar",
+          "match": "\\b(H|He|Li|Be|B|C|N|O|F|Ne|Na|Mg|Al|Si|P|S|Cl|Ar|K|Ca|Sc|Ti|V|Cr|Mn|Fe|Co|Ni|Cu|Zn|Ga|Ge|As|Se|Br|Kr|Rb|Sr|Y|Zr|Nb|Mo|Tc|Ru|Rh|Pd|Ag|Cd|In|Sn|Sb|Te|I|Xe|Cs|Ba|La|Ce|Pr|Nd|Pm|Sm|Eu|Gd|Tb|Dy|Ho|Er|Tm|Yb|Lu|Hf|Ta|W|Re|Os|Ir|Pt|Au|Hg|Tl|Pb|Bi|Po|At|Rn|Fr|Ra|Ac|Th|Pa|U|Np|Pu|Am|Cm|Bk|Cf|Es|Fm|Md|No|Lr|Rf|Db|Sg|Bh|Hs|Mt|Ds|Rg|Cn|Nh|Fl|Mc|Lv|Ts|Og)\\b"
+        }
+      ]
+    },
+    "coordinate-type": {
+      "patterns": [
+        {
+          "name": "keyword.control.coordinate.chgcar",
+          "match": "(?i)^\\s*(Direct|Cartesian|D|C|Selective\\s+dynamics?)\\s*$"
+        }
+      ]
+    },
+    "selective-dynamics": {
+      "patterns": [
+        {
+          "name": "keyword.control.selective.chgcar",
+          "match": "(?i)\\s(T|F)\\s"
+        }
+      ]
+    },
+    "augmentation-header": {
+      "patterns": [
+        {
+          "name": "markup.heading.augmentation.chgcar",
+          "match": "^\\s*augmentation\\s+occupancies.*$"
+        }
+      ]
+    },
+    "grid-line": {
+      "patterns": [
+        {
+          "name": "constant.numeric.grid.chgcar",
+          "match": "^\\s*\\d+\\s+\\d+\\s+\\d+\\s*$",
+          "comment": "FFT grid dimensions NGX NGY NGZ"
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.float.chgcar",
+          "match": "[-+]?\\d*\\.?\\d+([eEdD][-+]?\\d+)?"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "DOSCAR",
+  "scopeName": "source.doscar",
+  "comment": "VASP DOSCAR density of states file",
+  "patterns": [
+    { "include": "#comment-line" },
+    { "include": "#header-line" },
+    { "include": "#fermi-info" },
+    { "include": "#orbital-labels" },
+    { "include": "#numbers" }
+  ],
+  "repository": {
+    "comment-line": {
+      "patterns": [
+        {
+          "name": "comment.line.doscar",
+          "match": "^\\s*[#!].*$"
+        }
+      ]
+    },
+    "header-line": {
+      "patterns": [
+        {
+          "name": "string.unquoted.header.doscar",
+          "match": "^.*$",
+          "comment": "First line contains system info"
+        }
+      ]
+    },
+    "fermi-info": {
+      "patterns": [
+        {
+          "name": "keyword.control.fermi.doscar",
+          "match": "(?i)\\b(EMAX|EMIN|NEDOS|EFERMI|E-fermi|Fermi)\\b"
+        }
+      ]
+    },
+    "orbital-labels": {
+      "patterns": [
+        {
+          "name": "entity.name.type.orbital.doscar",
+          "match": "(?i)\\b(s|p|d|f|px|py|pz|dxy|dyz|dz2|dxz|dx2|tot|integrated|spin)\\b"
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.float.doscar",
+          "match": "[-+]?\\d*\\.?\\d+([eEdD][-+]?\\d+)?"
+        }
+      ]
+    }
+  }
+}

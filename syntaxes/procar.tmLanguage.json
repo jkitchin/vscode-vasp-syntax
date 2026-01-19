@@ -1,0 +1,88 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "PROCAR",
+  "scopeName": "source.procar",
+  "comment": "VASP PROCAR projected DOS file",
+  "patterns": [
+    { "include": "#comment-line" },
+    { "include": "#header-line" },
+    { "include": "#kpoint-section" },
+    { "include": "#band-section" },
+    { "include": "#ion-section" },
+    { "include": "#orbital-labels" },
+    { "include": "#tot-line" },
+    { "include": "#numbers" }
+  ],
+  "repository": {
+    "comment-line": {
+      "patterns": [
+        {
+          "name": "comment.line.procar",
+          "match": "^\\s*[#!].*$"
+        }
+      ]
+    },
+    "header-line": {
+      "patterns": [
+        {
+          "name": "markup.heading.header.procar",
+          "match": "^\\s*PROCAR\\s+(lm\\s+)?decomposed.*$"
+        }
+      ]
+    },
+    "kpoint-section": {
+      "patterns": [
+        {
+          "name": "markup.heading.kpoint.procar",
+          "match": "^\\s*k-point\\s+(\\d+)\\s*:",
+          "captures": {
+            "1": { "name": "constant.numeric.kpoint.procar" }
+          }
+        }
+      ]
+    },
+    "band-section": {
+      "patterns": [
+        {
+          "name": "markup.heading.band.procar",
+          "match": "^\\s*band\\s+(\\d+)\\s*#",
+          "captures": {
+            "1": { "name": "constant.numeric.band.procar" }
+          }
+        }
+      ]
+    },
+    "ion-section": {
+      "patterns": [
+        {
+          "name": "keyword.control.ion.procar",
+          "match": "^\\s*ion\\s+"
+        }
+      ]
+    },
+    "orbital-labels": {
+      "patterns": [
+        {
+          "name": "entity.name.type.orbital.procar",
+          "match": "\\b(s|py|pz|px|dxy|dyz|dz2|dxz|dx2|fy3x2|fxyz|fyz2|fz3|fxz2|fzx2|fx3|tot)\\b"
+        }
+      ]
+    },
+    "tot-line": {
+      "patterns": [
+        {
+          "name": "keyword.control.total.procar",
+          "match": "^\\s*tot\\s+"
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.float.procar",
+          "match": "[-+]?\\d*\\.?\\d+([eEdD][-+]?\\d+)?"
+        }
+      ]
+    }
+  }
+}

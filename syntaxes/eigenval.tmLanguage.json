@@ -1,0 +1,61 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "EIGENVAL",
+  "scopeName": "source.eigenval",
+  "comment": "VASP EIGENVAL eigenvalues file",
+  "patterns": [
+    { "include": "#comment-line" },
+    { "include": "#header-info" },
+    { "include": "#kpoint-header" },
+    { "include": "#band-entry" },
+    { "include": "#numbers" }
+  ],
+  "repository": {
+    "comment-line": {
+      "patterns": [
+        {
+          "name": "comment.line.eigenval",
+          "match": "^\\s*[#!].*$"
+        }
+      ]
+    },
+    "header-info": {
+      "patterns": [
+        {
+          "name": "keyword.control.header.eigenval",
+          "match": "(?i)\\b(NKPTS|NBANDS|NELECT|ISPIN|CAR)\\b"
+        }
+      ]
+    },
+    "kpoint-header": {
+      "patterns": [
+        {
+          "name": "markup.heading.kpoint.eigenval",
+          "match": "^\\s*k-point\\s*\\d+",
+          "comment": "K-point section header"
+        }
+      ]
+    },
+    "band-entry": {
+      "patterns": [
+        {
+          "name": "support.type.band.eigenval",
+          "match": "^\\s*(\\d+)\\s+([-+]?\\d*\\.?\\d+([eEdD][-+]?\\d+)?)\\s+([-+]?\\d*\\.?\\d+([eEdD][-+]?\\d+)?)?",
+          "captures": {
+            "1": { "name": "constant.numeric.band.eigenval" },
+            "2": { "name": "constant.numeric.energy.eigenval" },
+            "4": { "name": "constant.numeric.occupation.eigenval" }
+          }
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.float.eigenval",
+          "match": "[-+]?\\d*\\.?\\d+([eEdD][-+]?\\d+)?"
+        }
+      ]
+    }
+  }
+}
