@@ -1,0 +1,72 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "OSZICAR",
+  "scopeName": "source.oszicar",
+  "comment": "VASP OSZICAR iteration history file",
+  "patterns": [
+    { "include": "#comment-line" },
+    { "include": "#ionic-step" },
+    { "include": "#electronic-step" },
+    { "include": "#energy-keywords" },
+    { "include": "#convergence-keywords" },
+    { "include": "#numbers" }
+  ],
+  "repository": {
+    "comment-line": {
+      "patterns": [
+        {
+          "name": "comment.line.oszicar",
+          "match": "^\\s*[#!].*$"
+        }
+      ]
+    },
+    "ionic-step": {
+      "patterns": [
+        {
+          "name": "markup.heading.ionic.oszicar",
+          "match": "^\\s*(\\d+)\\s+(F=|E0=|T=|E=)",
+          "captures": {
+            "1": { "name": "constant.numeric.step.oszicar" },
+            "2": { "name": "keyword.control.energy.oszicar" }
+          }
+        }
+      ]
+    },
+    "electronic-step": {
+      "patterns": [
+        {
+          "name": "support.type.electronic.oszicar",
+          "match": "^\\s*(DAV|RMM|CG|EDAV|EDDAV):\\s*(\\d+)",
+          "captures": {
+            "1": { "name": "keyword.control.algorithm.oszicar" },
+            "2": { "name": "constant.numeric.iteration.oszicar" }
+          }
+        }
+      ]
+    },
+    "energy-keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.energy.oszicar",
+          "match": "\\b(F=|E=|E0=|EK=|SP=|SK=|d\\s*E\\s*=|dE|mag=|T=|d\\s*eps)\\b"
+        }
+      ]
+    },
+    "convergence-keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.convergence.oszicar",
+          "match": "\\b(ncg|rms|rms\\(c\\))\\b"
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.float.oszicar",
+          "match": "[-+]?\\d*\\.?\\d+([eEdD][-+]?\\d+)?"
+        }
+      ]
+    }
+  }
+}
