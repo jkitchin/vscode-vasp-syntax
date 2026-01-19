@@ -1,4 +1,8 @@
 import * as vscode from 'vscode';
+import * as os from 'os';
+import * as path from 'path';
+import * as fs from 'fs';
+import { execSync } from 'child_process';
 
 // VASP parameter documentation with links to official VASP wiki
 interface VaspParameter {
@@ -2389,6 +2393,446 @@ class VaspCompletionProvider implements vscode.CompletionItemProvider {
     }
 }
 
+// System Info Panel for debugging and support
+class SystemInfoPanel {
+    public static currentPanel: SystemInfoPanel | undefined;
+    private readonly _panel: vscode.WebviewPanel;
+    private _disposables: vscode.Disposable[] = [];
+
+    public static createOrShow(context: vscode.ExtensionContext) {
+        const column = vscode.window.activeTextEditor
+            ? vscode.window.activeTextEditor.viewColumn
+            : undefined;
+
+        if (SystemInfoPanel.currentPanel) {
+            SystemInfoPanel.currentPanel._panel.reveal(column);
+            SystemInfoPanel.currentPanel._update(context);
+            return;
+        }
+
+        const panel = vscode.window.createWebviewPanel(
+            'vaspSystemInfo',
+            'VASP System Info',
+            column || vscode.ViewColumn.One,
+            {
+                enableScripts: true,
+                retainContextWhenHidden: true
+            }
+        );
+
+        SystemInfoPanel.currentPanel = new SystemInfoPanel(panel, context);
+    }
+
+    private constructor(panel: vscode.WebviewPanel, context: vscode.ExtensionContext) {
+        this._panel = panel;
+        this._update(context);
+
+        this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
+    }
+
+    public dispose() {
+        SystemInfoPanel.currentPanel = undefined;
+        this._panel.dispose();
+        while (this._disposables.length) {
+            const x = this._disposables.pop();
+            if (x) {
+                x.dispose();
+            }
+        }
+    }
+
+    private _update(context: vscode.ExtensionContext) {
+        const systemInfo = this._gatherSystemInfo(context);
+        this._panel.webview.html = this._getHtmlForWebview(systemInfo);
+    }
+
+    private _gatherSystemInfo(context: vscode.ExtensionContext): Record<string, string | Record<string, string>> {
+        const info: Record<string, string | Record<string, string>> = {};
+
+        // Extension Information
+        const extensionInfo: Record<string, string> = {};
+        const packageJson = context.extension.packageJSON;
+        extensionInfo['Extension Name'] = packageJson.displayName || packageJson.name;
+        extensionInfo['Extension Version'] = packageJson.version;
+        extensionInfo['Extension ID'] = context.extension.id;
+        extensionInfo['Extension Path'] = context.extensionPath;
+        info['Extension'] = extensionInfo;
+
+        // VS Code Information
+        const vscodeInfo: Record<string, string> = {};
+        vscodeInfo['VS Code Version'] = vscode.version;
+        vscodeInfo['UI Kind'] = vscode.env.uiKind === vscode.UIKind.Desktop ? 'Desktop' : 'Web';
+        vscodeInfo['App Name'] = vscode.env.appName;
+        vscodeInfo['App Root'] = vscode.env.appRoot;
+        vscodeInfo['Language'] = vscode.env.language;
+        vscodeInfo['Shell'] = vscode.env.shell;
+        info['VS Code'] = vscodeInfo;
+
+        // System Information
+        const sysInfo: Record<string, string> = {};
+        sysInfo['OS Platform'] = os.platform();
+        sysInfo['OS Release'] = os.release();
+        sysInfo['OS Type'] = os.type();
+        sysInfo['Architecture'] = os.arch();
+        sysInfo['Hostname'] = os.hostname();
+        sysInfo['Home Directory'] = os.homedir();
+        sysInfo['Temp Directory'] = os.tmpdir();
+        sysInfo['Total Memory'] = `${Math.round(os.totalmem() / (1024 * 1024 * 1024))} GB`;
+        sysInfo['Free Memory'] = `${Math.round(os.freemem() / (1024 * 1024 * 1024))} GB`;
+        sysInfo['CPUs'] = `${os.cpus().length} cores (${os.cpus()[0]?.model || 'Unknown'})`;
+        sysInfo['Node.js Version'] = process.version;
+        info['System'] = sysInfo;
+
+        // VASP Environment Variables
+        const vaspEnv: Record<string, string> = {};
+        const vaspEnvVars = [
+            'VASP_PP_PATH', 'VASP_POTCAR_PATH', 'VASP_PSP_PATH',
+            'VASP_ROOT', 'VASP_HOME', 'VASP_DIR', 'VASP_BIN',
+            'VASP_COMMAND', 'ASE_VASP_COMMAND', 'VASP_SCRIPT',
+            'VASP_GAMMA', 'VASP_STD', 'VASP_NCL', 'VASP_GAM',
+            'POT_GGA_PAW', 'POT_LDA_PAW', 'POTCAR_PATH',
+            'VASP_MPI_PROCS', 'NSLOTS', 'OMP_NUM_THREADS',
+            'MKL_NUM_THREADS', 'MPI_PROCS'
+        ];
+
+        for (const envVar of vaspEnvVars) {
+            const value = process.env[envVar];
+            if (value) {
+                vaspEnv[envVar] = value;
+            }
+        }
+
+        // Check common PATH additions for VASP
+        const pathDirs = process.env.PATH?.split(path.delimiter) || [];
+        const vaspPathDirs = pathDirs.filter(p =>
+            p.toLowerCase().includes('vasp') ||
+            p.toLowerCase().includes('mpi') ||
+            p.toLowerCase().includes('intel')
+        );
+        if (vaspPathDirs.length > 0) {
+            vaspEnv['VASP-related PATH entries'] = vaspPathDirs.join('\n');
+        }
+
+        if (Object.keys(vaspEnv).length === 0) {
+            vaspEnv['Status'] = 'No VASP environment variables detected';
+        }
+        info['VASP Environment'] = vaspEnv;
+
+        // VASP Installation Detection
+        const vaspInstall: Record<string, string> = {};
+
+        // Try to find VASP executable
+        const vaspCommands = ['vasp_std', 'vasp_gam', 'vasp_ncl', 'vasp', 'vasp6', 'vasp5'];
+        for (const cmd of vaspCommands) {
+            try {
+                let result: string;
+                if (os.platform() === 'win32') {
+                    result = execSync(`where ${cmd}`, { encoding: 'utf-8', timeout: 5000 }).trim();
+                } else {
+                    result = execSync(`which ${cmd}`, { encoding: 'utf-8', timeout: 5000 }).trim();
+                }
+                if (result) {
+                    vaspInstall[`${cmd} location`] = result;
+                }
+            } catch {
+                // Command not found, continue
+            }
+        }
+
+        // Try to get VASP version if available
+        if (process.env.VASP_COMMAND || vaspInstall['vasp_std location']) {
+            try {
+                const vaspCmd = process.env.VASP_COMMAND || 'vasp_std';
+                // Note: VASP doesn't have a --version flag, so we just note it's installed
+                vaspInstall['VASP Command'] = vaspCmd;
+            } catch {
+                // Ignore errors
+            }
+        }
+
+        // Check for common POTCAR directories
+        const potcarPaths = [
+            process.env.VASP_PP_PATH,
+            process.env.VASP_POTCAR_PATH,
+            process.env.POT_GGA_PAW,
+            path.join(os.homedir(), 'vasp', 'potcars'),
+            path.join(os.homedir(), '.vasp', 'potpaw_PBE'),
+            '/opt/vasp/potcars',
+            '/usr/local/vasp/potcars'
+        ].filter(Boolean) as string[];
+
+        for (const potPath of potcarPaths) {
+            if (potPath && fs.existsSync(potPath)) {
+                vaspInstall['POTCAR Directory'] = potPath;
+                try {
+                    const contents = fs.readdirSync(potPath).slice(0, 10);
+                    vaspInstall['Available POTCARs (sample)'] = contents.join(', ') + (contents.length >= 10 ? '...' : '');
+                } catch {
+                    // Ignore read errors
+                }
+                break;
+            }
+        }
+
+        if (Object.keys(vaspInstall).length === 0) {
+            vaspInstall['Status'] = 'No VASP installation detected in PATH';
+        }
+        info['VASP Installation'] = vaspInstall;
+
+        // Workspace Information
+        const workspaceInfo: Record<string, string> = {};
+        const workspaceFolders = vscode.workspace.workspaceFolders;
+        if (workspaceFolders && workspaceFolders.length > 0) {
+            workspaceInfo['Workspace Folders'] = workspaceFolders.map(f => f.uri.fsPath).join('\n');
+
+            // Check for VASP files in workspace
+            const vaspFiles: string[] = [];
+            for (const folder of workspaceFolders) {
+                const vaspFileNames = ['INCAR', 'POSCAR', 'CONTCAR', 'KPOINTS', 'OUTCAR', 'POTCAR', 'CHGCAR', 'WAVECAR', 'DOSCAR'];
+                for (const fileName of vaspFileNames) {
+                    const filePath = path.join(folder.uri.fsPath, fileName);
+                    if (fs.existsSync(filePath)) {
+                        vaspFiles.push(fileName);
+                    }
+                }
+            }
+            if (vaspFiles.length > 0) {
+                workspaceInfo['VASP Files Found'] = vaspFiles.join(', ');
+            }
+        } else {
+            workspaceInfo['Status'] = 'No workspace folder open';
+        }
+        info['Workspace'] = workspaceInfo;
+
+        // Python/ASE Information (often used with VASP)
+        const pythonInfo: Record<string, string> = {};
+        try {
+            const pythonVersion = execSync('python3 --version', { encoding: 'utf-8', timeout: 5000 }).trim();
+            pythonInfo['Python Version'] = pythonVersion;
+        } catch {
+            try {
+                const pythonVersion = execSync('python --version', { encoding: 'utf-8', timeout: 5000 }).trim();
+                pythonInfo['Python Version'] = pythonVersion;
+            } catch {
+                pythonInfo['Python'] = 'Not found in PATH';
+            }
+        }
+
+        // Check for ASE
+        try {
+            const aseVersion = execSync('python3 -c "import ase; print(ase.__version__)"', { encoding: 'utf-8', timeout: 5000 }).trim();
+            pythonInfo['ASE Version'] = aseVersion;
+        } catch {
+            try {
+                const aseVersion = execSync('python -c "import ase; print(ase.__version__)"', { encoding: 'utf-8', timeout: 5000 }).trim();
+                pythonInfo['ASE Version'] = aseVersion;
+            } catch {
+                pythonInfo['ASE'] = 'Not installed';
+            }
+        }
+
+        // Check for pymatgen
+        try {
+            const pmgVersion = execSync('python3 -c "import pymatgen; print(pymatgen.__version__)"', { encoding: 'utf-8', timeout: 5000 }).trim();
+            pythonInfo['pymatgen Version'] = pmgVersion;
+        } catch {
+            try {
+                const pmgVersion = execSync('python -c "import pymatgen; print(pymatgen.__version__)"', { encoding: 'utf-8', timeout: 5000 }).trim();
+                pythonInfo['pymatgen Version'] = pmgVersion;
+            } catch {
+                // pymatgen not installed, don't report
+            }
+        }
+
+        info['Python Environment'] = pythonInfo;
+
+        return info;
+    }
+
+    private _getHtmlForWebview(info: Record<string, string | Record<string, string>>): string {
+        // Build the content string for copying
+        let textContent = 'VASP Extension System Information\n';
+        textContent += '='.repeat(50) + '\n\n';
+
+        for (const [section, data] of Object.entries(info)) {
+            textContent += `## ${section}\n`;
+            textContent += '-'.repeat(30) + '\n';
+            if (typeof data === 'string') {
+                textContent += `${data}\n`;
+            } else {
+                for (const [key, value] of Object.entries(data)) {
+                    textContent += `${key}: ${value}\n`;
+                }
+            }
+            textContent += '\n';
+        }
+
+        textContent += '\nGenerated: ' + new Date().toISOString() + '\n';
+
+        // Build HTML sections
+        let htmlSections = '';
+        for (const [section, data] of Object.entries(info)) {
+            htmlSections += `<div class="section">
+                <h2>${this._escapeHtml(section)}</h2>
+                <table>`;
+
+            if (typeof data === 'string') {
+                htmlSections += `<tr><td colspan="2">${this._escapeHtml(data)}</td></tr>`;
+            } else {
+                for (const [key, value] of Object.entries(data)) {
+                    const displayValue = value.includes('\n')
+                        ? `<pre>${this._escapeHtml(value)}</pre>`
+                        : this._escapeHtml(value);
+                    htmlSections += `<tr><td class="key">${this._escapeHtml(key)}</td><td class="value">${displayValue}</td></tr>`;
+                }
+            }
+
+            htmlSections += `</table></div>`;
+        }
+
+        return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VASP System Info</title>
+    <style>
+        body {
+            font-family: var(--vscode-font-family);
+            font-size: var(--vscode-font-size);
+            color: var(--vscode-foreground);
+            background-color: var(--vscode-editor-background);
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: var(--vscode-titleBar-activeForeground);
+            border-bottom: 2px solid var(--vscode-titleBar-activeForeground);
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: var(--vscode-textLink-foreground);
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        .section {
+            margin-bottom: 25px;
+            background-color: var(--vscode-editor-inactiveSelectionBackground);
+            padding: 15px;
+            border-radius: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        td {
+            padding: 8px;
+            border-bottom: 1px solid var(--vscode-widget-border);
+            vertical-align: top;
+        }
+        .key {
+            font-weight: bold;
+            width: 35%;
+            color: var(--vscode-symbolIcon-propertyForeground);
+        }
+        .value {
+            word-break: break-all;
+            font-family: var(--vscode-editor-font-family);
+        }
+        pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: var(--vscode-editor-font-family);
+            font-size: var(--vscode-editor-font-size);
+        }
+        .button-container {
+            margin: 20px 0;
+            display: flex;
+            gap: 10px;
+        }
+        button {
+            background-color: var(--vscode-button-background);
+            color: var(--vscode-button-foreground);
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 3px;
+            font-size: 14px;
+        }
+        button:hover {
+            background-color: var(--vscode-button-hoverBackground);
+        }
+        .copy-success {
+            color: var(--vscode-testing-iconPassed);
+            margin-left: 10px;
+            display: none;
+        }
+        .timestamp {
+            color: var(--vscode-descriptionForeground);
+            font-size: 0.9em;
+            margin-top: 20px;
+        }
+        textarea {
+            position: absolute;
+            left: -9999px;
+        }
+    </style>
+</head>
+<body>
+    <h1>VASP Extension System Information</h1>
+
+    <div class="button-container">
+        <button onclick="copyToClipboard()">Copy All to Clipboard</button>
+        <span class="copy-success" id="copySuccess">Copied!</span>
+    </div>
+
+    ${htmlSections}
+
+    <p class="timestamp">Generated: ${new Date().toISOString()}</p>
+
+    <textarea id="copyText" readonly>${this._escapeHtml(textContent)}</textarea>
+
+    <script>
+        function copyToClipboard() {
+            const text = document.getElementById('copyText').value;
+            navigator.clipboard.writeText(text).then(() => {
+                const successMsg = document.getElementById('copySuccess');
+                successMsg.style.display = 'inline';
+                setTimeout(() => {
+                    successMsg.style.display = 'none';
+                }, 2000);
+            }).catch(err => {
+                // Fallback for older browsers
+                const textarea = document.getElementById('copyText');
+                textarea.style.position = 'static';
+                textarea.select();
+                document.execCommand('copy');
+                textarea.style.position = 'absolute';
+                textarea.style.left = '-9999px';
+
+                const successMsg = document.getElementById('copySuccess');
+                successMsg.style.display = 'inline';
+                setTimeout(() => {
+                    successMsg.style.display = 'none';
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>`;
+    }
+
+    private _escapeHtml(text: string): string {
+        return text
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+}
+
 export function activate(context: vscode.ExtensionContext) {
     console.log('VASP Syntax extension is now active');
 
@@ -2409,6 +2853,13 @@ export function activate(context: vscode.ExtensionContext) {
     const completionProvider = new VaspCompletionProvider();
     context.subscriptions.push(
         vscode.languages.registerCompletionItemProvider('incar', completionProvider)
+    );
+
+    // Register command to show system info
+    context.subscriptions.push(
+        vscode.commands.registerCommand('vasp.showSystemInfo', () => {
+            SystemInfoPanel.createOrShow(context);
+        })
     );
 
     // Register a command to open VASP wiki for the word under cursor

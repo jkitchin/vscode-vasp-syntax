@@ -102,6 +102,16 @@
         "configuration": "./language-configuration.json"
       }
     ],
+    "commands": [
+      {
+        "command": "vasp.openWiki",
+        "title": "VASP: Open Wiki Documentation"
+      },
+      {
+        "command": "vasp.showSystemInfo",
+        "title": "VASP: Show System Info"
+      }
+    ],
     "grammars": [
       {
         "language": "incar",
