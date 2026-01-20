@@ -1,6 +1,8 @@
-# VASP Syntax Highlighting for VS Code
+# VASPsum for VS Code
 
-Comprehensive syntax highlighting, tooltips, and auto-completion for VASP (Vienna Ab initio Simulation Package) input and output files.
+Comprehensive syntax highlighting, tooltips, auto-completion, summarization and visualization for VASP (Vienna Ab initio Simulation Package) input and output files.
+
+![img](./screenshot.png)
 
 ## Features
 
@@ -46,42 +48,85 @@ Debug and support tool accessible via Command Palette:
 - Shows Python/ASE/pymatgen versions
 - One-click copy to clipboard for sharing
 
+### VASPsum - Unified Summary & Visualization
+
+The main feature of this extension is the **VASPsum** command that provides a comprehensive view of your VASP calculation:
+
+- **Command**: `VASPsum: Show Structure & Summary`
+- **Shortcut**: `Ctrl+Shift+V` (Windows/Linux) / `Cmd+Shift+V` (Mac)
+- **CodeLens**: Click the "VASPsum" link at the top of any VASP file
+
+#### Structure Visualization (3Dmol.js)
+
+When POSCAR or CONTCAR is present:
+- Interactive 3D rotation, zoom, and pan
+- Element-colored atoms using CPK color scheme
+- Unit cell box display (toggle on/off)
+- Switch between sphere and stick visualization styles
+- Atom labels toggle
+- **Unit cell repetition**: Expand the view in a, b, c directions (1-10x)
+- **Constrained atom markers**: Atoms with selective dynamics constraints (F flags) are shown with:
+  - Slight transparency (0.9 opacity)
+  - Red 3D marker (X in XY plane + vertical line) visible from all angles
+- **Theme-adaptive colors**: Background and unit cell lines automatically match your VS Code theme (light/dark)
+
+#### Calculation Summary
+
+When vasprun.xml is present:
+- Total energy and energy per atom
+- Fermi energy
+- Convergence status (checks if relaxation completed before NSW steps)
+- Maximum force and pressure
+- Stress tensor (collapsible)
+- Atomic forces table (collapsible, highlights forces > 0.05 eV/Å)
+- Calculation parameters: XC functional, ENCUT, k-points, ISPIN, IBRION, NSW, EDIFF, EDIFFG
+
+#### Relaxation Progress Viewer
+
+For geometry optimizations (multiple ionic steps):
+- Energy vs. ionic step graph (Chart.js)
+- Interactive slider to step through the relaxation
+- Red dot on graph shows current step
+- Energy and max force display for selected step
+- **Live structure update**: 3D viewer updates atom positions as you move the slider
+- Constraint markers are preserved during playback
+
 ## Supported File Types
 
 ### Input Files
 
-| File | Names/Extensions | Description |
-|------|------------------|-------------|
-| INCAR | `INCAR`, `INCAR.orig`, `*.incar` | Calculation parameters |
-| POSCAR | `POSCAR`, `CONTCAR`, `*.poscar`, `*.vasp` | Atomic structure |
-| KPOINTS | `KPOINTS`, `*.kpoints` | K-point mesh definition |
+| File    | Names/Extensions                          | Description             |
+|---------|-------------------------------------------|-------------------------|
+| INCAR   | `INCAR`, `INCAR.orig`, `*.incar`          | Calculation parameters  |
+| POSCAR  | `POSCAR`, `CONTCAR`, `*.poscar`, `*.vasp` | Atomic structure        |
+| KPOINTS | `KPOINTS`, `*.kpoints`                    | K-point mesh definition |
 
 ### Output Files
 
-| File | Names/Extensions | Description |
-|------|------------------|-------------|
-| OUTCAR | `OUTCAR`, `*.outcar` | Main output with all results |
-| OSZICAR | `OSZICAR`, `*.oszicar` | Iteration history (energies, convergence) |
-| DOSCAR | `DOSCAR`, `*.doscar` | Density of states |
-| EIGENVAL | `EIGENVAL`, `*.eigenval` | Band eigenvalues |
-| PROCAR | `PROCAR`, `*.procar` | Projected DOS onto orbitals |
-| IBZKPT | `IBZKPT`, `*.ibzkpt` | Irreducible k-points |
-| PCDAT | `PCDAT`, `*.pcdat` | Pair correlation function |
+| File     | Names/Extensions         | Description                               |
+|----------|--------------------------|-------------------------------------------|
+| OUTCAR   | `OUTCAR`, `*.outcar`     | Main output with all results              |
+| OSZICAR  | `OSZICAR`, `*.oszicar`   | Iteration history (energies, convergence) |
+| DOSCAR   | `DOSCAR`, `*.doscar`     | Density of states                         |
+| EIGENVAL | `EIGENVAL`, `*.eigenval` | Band eigenvalues                          |
+| PROCAR   | `PROCAR`, `*.procar`     | Projected DOS onto orbitals               |
+| IBZKPT   | `IBZKPT`, `*.ibzkpt`     | Irreducible k-points                      |
+| PCDAT    | `PCDAT`, `*.pcdat`       | Pair correlation function                 |
 
 ### Volumetric Data Files
 
-| File | Names/Extensions | Description |
-|------|------------------|-------------|
-| CHGCAR | `CHGCAR`, `CHG`, `*.chgcar` | Charge density |
-| LOCPOT | `LOCPOT`, `*.locpot` | Local potential |
-| ELFCAR | `ELFCAR`, `*.elfcar` | Electron localization function |
-| PARCHG | `PARCHG`, `*.parchg` | Partial charge density |
-| AECCAR | `AECCAR0`, `AECCAR1`, `AECCAR2` | All-electron charge density |
+| File   | Names/Extensions                | Description                    |
+|--------|---------------------------------|--------------------------------|
+| CHGCAR | `CHGCAR`, `CHG`, `*.chgcar`     | Charge density                 |
+| LOCPOT | `LOCPOT`, `*.locpot`            | Local potential                |
+| ELFCAR | `ELFCAR`, `*.elfcar`            | Electron localization function |
+| PARCHG | `PARCHG`, `*.parchg`            | Partial charge density         |
+| AECCAR | `AECCAR0`, `AECCAR1`, `AECCAR2` | All-electron charge density    |
 
 ### Trajectory Files
 
-| File | Names/Extensions | Description |
-|------|------------------|-------------|
+| File    | Names/Extensions       | Description             |
+|---------|------------------------|-------------------------|
 | XDATCAR | `XDATCAR`, `*.xdatcar` | MD trajectory positions |
 
 ## Installation
@@ -132,6 +177,19 @@ make install-dev
 3. Hover over parameters to see documentation
 4. Use Ctrl+Space for auto-completion in INCAR files
 
+### VASPsum - View Calculation Summary
+
+Three ways to open the VASPsum panel:
+
+1. **CodeLens**: Click the "VASPsum: Structure + Summary" link at the top of any VASP file
+2. **Keyboard**: Press `Ctrl+Shift+V` (Windows/Linux) or `Cmd+Shift+V` (Mac)
+3. **Command Palette**: Run "VASPsum: Show Structure & Summary"
+
+The panel automatically detects available files in the directory:
+- Shows 3D structure if POSCAR or CONTCAR exists
+- Shows calculation summary if vasprun.xml exists
+- Shows relaxation viewer with slider if multiple ionic steps
+
 ### Open VASP Wiki
 
 1. Place cursor on a parameter name
@@ -167,23 +225,23 @@ The System Info panel shows:
 
 Over 200 VASP parameters are documented with full descriptions:
 
-| Category | Parameters |
-|----------|------------|
-| **Basic** | ENCUT, PREC, ALGO, EDIFF, NELM, LREAL, GGA, METAGGA |
-| **K-points** | ISMEAR, SIGMA, KSPACING, KGAMMA |
-| **Ionic** | NSW, IBRION, ISIF, EDIFFG, POTIM, NFREE |
-| **Spin** | ISPIN, MAGMOM, NUPDOWN |
-| **Spin-Orbit** | LSORBIT, LNONCOLLINEAR, SAXIS, LORBMOM |
-| **DFT+U** | LDAU, LDAUTYPE, LDAUL, LDAUU, LDAUJ |
-| **Hybrid** | LHFCALC, HFSCREEN, AEXX, PRECFOCK |
-| **Van der Waals** | IVDW, LUSE_VDW, VDW_S6, VDW_S8 |
-| **Output** | LWAVE, LCHARG, LORBIT, NEDOS, LVTOT, LELF |
-| **Parallel** | NCORE, NPAR, KPAR, LPLANE |
-| **GW/BSE** | NOMEGA, ENCUTGW, NBANDSO, NBANDSV |
-| **MLFF** | ML_LMLFF, ML_MODE, ML_RCUT1, ML_RCUT2 |
-| **NEB** | IMAGES, SPRING, LCLIMB, ICHAIN |
-| **MD** | MDALGO, SMASS, TEBEG, TEEND |
-| **Mixing** | AMIX, BMIX, AMIX_MAG, IMIX |
+| Category          | Parameters                                          |
+|-------------------|-----------------------------------------------------|
+| **Basic**         | ENCUT, PREC, ALGO, EDIFF, NELM, LREAL, GGA, METAGGA |
+| **K-points**      | ISMEAR, SIGMA, KSPACING, KGAMMA                     |
+| **Ionic**         | NSW, IBRION, ISIF, EDIFFG, POTIM, NFREE             |
+| **Spin**          | ISPIN, MAGMOM, NUPDOWN                              |
+| **Spin-Orbit**    | LSORBIT, LNONCOLLINEAR, SAXIS, LORBMOM              |
+| **DFT+U**         | LDAU, LDAUTYPE, LDAUL, LDAUU, LDAUJ                 |
+| **Hybrid**        | LHFCALC, HFSCREEN, AEXX, PRECFOCK                   |
+| **Van der Waals** | IVDW, LUSE_VDW, VDW_S6, VDW_S8                      |
+| **Output**        | LWAVE, LCHARG, LORBIT, NEDOS, LVTOT, LELF           |
+| **Parallel**      | NCORE, NPAR, KPAR, LPLANE                           |
+| **GW/BSE**        | NOMEGA, ENCUTGW, NBANDSO, NBANDSV                   |
+| **MLFF**          | ML_LMLFF, ML_MODE, ML_RCUT1, ML_RCUT2               |
+| **NEB**           | IMAGES, SPRING, LCLIMB, ICHAIN                      |
+| **MD**            | MDALGO, SMASS, TEBEG, TEEND                         |
+| **Mixing**        | AMIX, BMIX, AMIX_MAG, IMIX                          |
 
 ## Screenshots
 
@@ -207,37 +265,19 @@ Type to get suggestions with documentation:
 
 ## Commands
 
-| Command | Description |
-|---------|-------------|
-| `VASP: Open Wiki Documentation` | Open VASP Wiki for parameter under cursor |
-| `VASP: Show System Info` | Display system/VASP environment information |
+| Command                             | Shortcut                       | Description                                                                |
+|-------------------------------------|--------------------------------|----------------------------------------------------------------------------|
+| `VASPsum: Show Structure & Summary` | `Ctrl+Shift+V` / `Cmd+Shift+V` | Unified view with 3D structure, calculation summary, and relaxation viewer |
+| `VASP: Open Wiki Documentation`     | -                              | Open VASP Wiki for parameter under cursor                                  |
+| `VASP: Show System Info`            | -                              | Display system/VASP environment information                                |
 
-## Development
-
-```bash
-# Install dependencies
-npm install
-
-# Build
-npm run compile
-
-# Watch for changes
-npm run watch
-
-# Lint
-npm run lint
-
-# Package
-make package
-```
 
 ## Contributing
 
 Contributions are welcome!
 
-- Add new parameters to `src/extension.ts` in the `VASP_PARAMETERS` object
-- Add new file type support in `package.json` and create grammar in `syntaxes/`
-- Report issues at the GitHub repository
+- Report issues and feature requests at the GitHub repository
+- We also consider pull requests
 
 ## License
 
@@ -247,4 +287,4 @@ MIT
 
 - [VASP Official Site](https://www.vasp.at/)
 - [VASP Wiki](https://www.vasp.at/wiki/)
-- [GitHub Repository](https://github.com/jkitchin/vscode-vasp-syntax)
+- [GitHub Repository](https://github.com/jkitchin/vscode-vaspsum)

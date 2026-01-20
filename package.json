@@ -1,7 +1,7 @@
 {
-  "name": "vasp-syntax",
-  "displayName": "VASP Syntax Highlighting",
-  "description": "Syntax highlighting and tooltips for all VASP input/output files including INCAR, POSCAR, CONTCAR, CHGCAR, DOSCAR, XDATCAR, LOCPOT, ELFCAR, PARCHG, PROCAR, OSZICAR, EIGENVAL, IBZKPT, KPOINTS, OUTCAR and more",
+  "name": "vaspsum",
+  "displayName": "VASPsum",
+  "description": "VASP calculation summary, structure preview, and syntax highlighting for all VASP input/output files including INCAR, POSCAR, CONTCAR, CHGCAR, DOSCAR, XDATCAR, LOCPOT, ELFCAR, PARCHG, PROCAR, OSZICAR, EIGENVAL, IBZKPT, KPOINTS, OUTCAR and more",
   "version": "1.0.0",
   "license": "MIT",
   "publisher": "vasp-ase",
@@ -260,8 +260,29 @@
       {
         "command": "vasp.showSystemInfo",
         "title": "VASP: Show System Info"
+      },
+      {
+        "command": "vasp.vaspsum",
+        "title": "VASPsum: Show Structure & Summary"
       }
     ],
+    "keybindings": [
+      {
+        "command": "vasp.vaspsum",
+        "key": "ctrl+shift+v",
+        "mac": "cmd+shift+v",
+        "when": "editorLangId =~ /incar|poscar|kpoints|outcar|chgcar|doscar|xdatcar|oszicar|eigenval|procar|ibzkpt|pcdat/"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "vasp.vaspsum",
+          "when": "editorLangId =~ /incar|poscar|kpoints|outcar|chgcar|doscar|xdatcar|oszicar|eigenval|procar|ibzkpt|pcdat/",
+          "group": "navigation"
+        }
+      ]
+    },
     "grammars": [
       {
         "language": "incar",

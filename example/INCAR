@@ -1,7 +1,0 @@
-SYSTEM = fcc Si
-ISTART = 0
-ICHARG = 2
-PREC = Normal
-ENCUT = 240
-ISMEAR = 0
-SIGMA = 0.1
